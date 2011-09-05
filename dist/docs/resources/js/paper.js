@@ -13,7 +13,7 @@
  *
  * All rights reserved.
  *
- * Date: Tue Aug 23 16:36:57 2011 +0200
+ * Date: Mon Aug 29 00:38:06 2011 -0400
  *
  ***
  *
@@ -2191,6 +2191,9 @@ var Item = this.Item = Base.extend({
 				this.setSelected(false);
 			if (this._name)
 				this._removeFromNamed();
+			if (this._onFrame)
+				paper.removeItemOnFrame(this);
+
 			Base.splice(this._parent._children, null, this._index, 1);
 			if (notify)
 				this._parent._changed(Change.HIERARCHY);
@@ -2208,7 +2211,7 @@ var Item = this.Item = Base.extend({
 		if (!this._children)
 			return null;
 		from = from || 0;
-	 	to = Base.pick(to, this._children.length);
+		to = Base.pick(to, this._children.length);
 		var removed = this._children.splice(from, to - from);
 		for (var i = removed.length - 1; i >= 0; i--)
 			removed[i]._remove(true, false);
@@ -2360,6 +2363,11 @@ var Item = this.Item = Base.extend({
 
 	getRoughBounds: function() {
 		return this._getBounds('getRoughBounds', '_roughBounds', arguments);
+	},
+
+	onFrame : function(callback) {
+		this._onFrame = callback;
+		paper.view.addItemOnFrame(this);
 	},
 
 	scale: function(hor, ver , center) {
@@ -6733,18 +6741,48 @@ var View = this.View = PaperScopeItem.extend({
 			}
 			var now = Date.now() / 1000,
 			 	delta = before ? now - before : 0;
-			that._onFrame(Base.merge({
+			event_obj = Base.merge({
 				delta: delta, 
 				time: time += delta, 
 				count: count++
-			}));
+			});
+
+			if (typeof paper._onFrameStack != "undefined" && 
+					paper._onFrameStack.length > 0) {
+				for (var i = 0 ; i < paper._onFrameStack.length; i++) {
+					paper._onFrameStack[i]._onFrame.apply(paper._onFrameStack[i], [event_obj]);
+				}
+			}
+
+			that._onFrame(event_obj);
 			before = now;
 			that.draw(true);
+
 		};
 		if (!requested)
 			this._onFrameCallback();
 	},
 
+	addItemOnFrame: function(item) {
+		if (typeof this._onFrameCallback == "undefined") {
+			noop = function() {};
+			this.setOnFrame(noop);
+		}
+		if (typeof paper._onFrameStack == "undefined") {
+			paper._onFrameStack = [];
+		}
+		paper._onFrameStack.push(item);
+	},
+
+	removeItemOnFrame: function(item) {
+		if (typeof this._onFrameCallback != "undefined") {
+			for( var i = 0; i < this._onFrameStack.length; i++) {
+				if (this._onFrameStack[i] == item) {
+					this._onFrameStack.splice(i,1);
+				}
+			}
+		}
+	}
 	onResize: null
 }, {
 	statics: {
@@ -7753,7 +7791,9 @@ var parse_js=new function(){function W(a,b,c){var d=[];for(var e=0;e<a.length;++
 				}
 				if (view) {
 					view.onResize = onResize;
-					view.setOnFrame(onFrame);
+					if (typeof onFrame != "undefined") {
+					  view.setOnFrame(onFrame);
+					}
 					view.draw();
 				}
 			}).call(scope);

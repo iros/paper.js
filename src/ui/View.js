@@ -407,24 +407,54 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 			var now = Date.now() / 1000,
 			 	delta = before ? now - before : 0;
 			// Use Base.merge to convert into a Base object, for #toString()
-			that._onFrame(Base.merge({
+			event_obj = Base.merge({
 				delta: delta, // Time elapsed since last redraw in seconds
 				time: time += delta, // Time since first call of frame() in seconds
 				count: count++
-			}));
+			});
+
+			// execute item level onFrame animations if there are any.
+			if (typeof paper._onFrameStack != "undefined" && 
+					paper._onFrameStack.length > 0) {
+				for (var i = 0 ; i < paper._onFrameStack.length; i++) {
+					paper._onFrameStack[i]._onFrame.apply(paper._onFrameStack[i], [event_obj]);
+				}
+			}
+
+			that._onFrame(event_obj);
 			before = now;
 			// Automatically draw view on each frame.
 			that.draw(true);
+
 		};
 		// Call the onFrame handler straight away, initializing the sequence
 		// of onFrame calls.
 		if (!requested)
 			this._onFrameCallback();
+			
 /*#*/ } // options.browser
 	},
 
+	addItemOnFrame: function(item) {
+		if (typeof this._onFrameCallback == "undefined") {
+			noop = function() {};
+			this.setOnFrame(noop);
+		}
+		if (typeof paper._onFrameStack == "undefined") {
+			paper._onFrameStack = [];
+		}
+		paper._onFrameStack.push(item);
+	},
 
-
+	removeItemOnFrame: function(item) {
+		if (typeof this._onFrameCallback != "undefined") {
+			for( var i = 0; i < this._onFrameStack.length; i++) {
+				if (this._onFrameStack[i] == item) {
+					this._onFrameStack.splice(i,1);
+				}
+			}
+		}
+	}
 	/**
 	 * Handler function that is called whenever a view is resized.
 	 *

@@ -299,7 +299,7 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 	 * // Making an item 50% transparent:
 	 * var circle = new Path.Circle(new Point(80, 50), 35);
 	 * circle.fillColor = 'red';
-     *
+	 *
 	 * var circle2 = new Path.Circle(new Point(120, 50), 35);
 	 * circle2.style = {
 	 * 	fillColor: 'blue',
@@ -966,6 +966,9 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 				this.setSelected(false);
 			if (this._name)
 				this._removeFromNamed();
+			if (this._onFrame)
+				paper.removeItemOnFrame(this);
+
 			Base.splice(this._parent._children, null, this._index, 1);
 			// Notify parent of changed hierarchy
 			if (notify)
@@ -1010,7 +1013,7 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 		if (!this._children)
 			return null;
 		from = from || 0;
-	 	to = Base.pick(to, this._children.length);
+		to = Base.pick(to, this._children.length);
 		var removed = this._children.splice(from, to - from);
 		for (var i = removed.length - 1; i >= 0; i--)
 			removed[i]._remove(true, false);
@@ -1300,6 +1303,42 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 	},
 
 	/**
+	 * The onFrame function allows you to bind an onFrame function to the
+	 * specific object rather than the global onFrame context. 
+	 *  
+	 * @param callback - a function that will be executed on frame. Note that
+	 * the function's context will be set to the item itself, so any use of this
+	 * will reference this item.
+	 *
+	 * @example {@paperscript}
+	 * // Create a circle shaped path at { x: 1, y: 1 }
+	 * // with a radius of 5:
+	 * var circle = new Path.Circle(new Point(1, 1), 5);
+	 *
+	 * // Set its stroke color to RGB red:
+	 * circle.strokeColor = new RGBColor(1, 0, 0);
+	 *
+	 * // create 10 circles
+	 * for(var i = 0; i < 10; i++) {
+	 *   var c = circle.clone();
+	 *   c.position = new Point(5, i * (5 * 2) + 5);
+	 *
+	 *   // move this circle 5 pixels to the right
+	 *   // and wrap around if it reaches the edge.
+	 *   c.onFrame(function(event) {
+	 *     this.position.x += 5;
+	 *     if (this.position.x >= view.size.width) {
+	 *       this.position.x = 0;
+	 *     }
+	 *   });
+	 * }
+	 */
+	onFrame : function(callback) {
+		this._onFrame = callback;
+		paper.view.addItemOnFrame(this);
+	},
+
+	/**
 	 * {@grouptitle Stroke Style}
 	 *
 	 * The color of the stroke.
@@ -1393,11 +1432,11 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 	 *
 	 * // Select the path, so we can see where the stroke is formed:
 	 * path.selected = true;
-     *
+	 *
 	 * var path2 = path.clone();
 	 * path2.position.x += path2.bounds.width * 1.5;
 	 * path2.strokeJoin = 'round';
-     *
+	 *
 	 * var path3 = path2.clone();
 	 * path3.position.x += path3.bounds.width * 1.5;
 	 * path3.strokeJoin = 'bevel';
@@ -1514,7 +1553,7 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 	 * // with a radius of 20:
 	 * var circle = new Path.Circle(new Point(100, 50), 20);
 	 * circle.fillColor = 'red';
-     *
+	 *
 	 * // Scale the path horizontally by 300%
 	 * circle.scale(3, 1);
 	 */
@@ -1554,7 +1593,7 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 	 * // point at {x: 80, y: 25} and a size of {width: 50, height: 50}:
 	 * var path = new Path.Rectangle(new Point(80, 25), new Size(50, 50));
 	 * path.fillColor = 'black';
-     *
+	 *
 	 * // Rotate the path by 30 degrees:
 	 * path.rotate(30);
 	 *
