@@ -454,7 +454,8 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 				}
 			}
 		}
-	}
+	},
+	
 	/**
 	 * Handler function that is called whenever a view is resized.
 	 *

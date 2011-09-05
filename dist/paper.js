@@ -13,7 +13,7 @@
  *
  * All rights reserved.
  *
- * Date: Mon Aug 29 00:38:06 2011 -0400
+ * Date: Mon Sep 5 15:23:30 2011 -0400
  *
  ***
  *
@@ -6782,7 +6782,7 @@ var View = this.View = PaperScopeItem.extend({
 				}
 			}
 		}
-	}
+	},
 	onResize: null
 }, {
 	statics: {
@@ -6966,7 +6966,9 @@ var Key = this.Key = new function() {
 		39: 'right',
 		40: 'down',
 		46: 'delete',
-		91: 'command'
+		91: 'command',
+		93: 'command', 
+		224: 'command'  
 	},
 
 	modifiers = Base.merge({
