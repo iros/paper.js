@@ -417,7 +417,7 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 			if (paper._onFrameStack && 
 					paper._onFrameStack.length > 0) {
 				for (var i = 0 ; i < paper._onFrameStack.length; i++) {
-				  var item = paper._onFrameStack[i]
+				  var item = paper._onFrameStack[i];
 					item._onFrame.apply(item, [eventObj]);
 				}
 			}
