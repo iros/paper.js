@@ -13,7 +13,7 @@
  *
  * All rights reserved.
  *
- * Date: Mon Sep 5 15:23:30 2011 -0400
+ * Date: Mon Sep 5 16:37:21 2011 -0400
  *
  ***
  *
@@ -2038,6 +2038,10 @@ var Item = this.Item = Base.extend({
 		copy.setSelected(this._selected);
 		if (this._name)
 			copy.setName(this._name);
+		if (this._onFrame) {
+		  copy._onFrame = this._onFrame;
+		  paper.view.addItemOnFrame(copy);
+		}
 		return copy;
 	},
 
@@ -2192,7 +2196,7 @@ var Item = this.Item = Base.extend({
 			if (this._name)
 				this._removeFromNamed();
 			if (this._onFrame)
-				paper.removeItemOnFrame(this);
+				paper.view.removeItemOnFrame(this);
 
 			Base.splice(this._parent._children, null, this._index, 1);
 			if (notify)
@@ -6740,21 +6744,22 @@ var View = this.View = PaperScopeItem.extend({
 						that._canvas);
 			}
 			var now = Date.now() / 1000,
-			 	delta = before ? now - before : 0;
-			event_obj = Base.merge({
-				delta: delta, 
-				time: time += delta, 
-				count: count++
-			});
+			 	delta = before ? now - before : 0,
+			  eventObj = Base.merge({
+  				delta: delta, 
+  				time: time += delta, 
+  				count: count++
+  			});
 
-			if (typeof paper._onFrameStack != "undefined" && 
+			if (paper._onFrameStack && 
 					paper._onFrameStack.length > 0) {
 				for (var i = 0 ; i < paper._onFrameStack.length; i++) {
-					paper._onFrameStack[i]._onFrame.apply(paper._onFrameStack[i], [event_obj]);
+				  var item = paper._onFrameStack[i]
+					item._onFrame.apply(item, [eventObj]);
 				}
 			}
 
-			that._onFrame(event_obj);
+			that._onFrame(eventObj);
 			before = now;
 			that.draw(true);
 
@@ -6765,8 +6770,7 @@ var View = this.View = PaperScopeItem.extend({
 
 	addItemOnFrame: function(item) {
 		if (typeof this._onFrameCallback == "undefined") {
-			noop = function() {};
-			this.setOnFrame(noop);
+			this.setOnFrame(function() {});
 		}
 		if (typeof paper._onFrameStack == "undefined") {
 			paper._onFrameStack = [];
@@ -6775,7 +6779,8 @@ var View = this.View = PaperScopeItem.extend({
 	},
 
 	removeItemOnFrame: function(item) {
-		if (typeof this._onFrameCallback != "undefined") {
+		if (paper._onFrameStack && 
+				paper._onFrameStack.length > 0) {
 			for( var i = 0; i < this._onFrameStack.length; i++) {
 				if (this._onFrameStack[i] == item) {
 					this._onFrameStack.splice(i,1);

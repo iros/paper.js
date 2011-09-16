@@ -27,15 +27,15 @@
 			}
 			path.smooth();
 
-			path.onFrame(function(i) {
+			var placedSymbol = new PlacedSymbol(path);
+			layer.insertChild(0, placedSymbol);
+			
+			placedSymbol.onFrame(function(i) {
 				return 	function(event) {
 					var angle = (values.count - i) * Math.sin(event.count / 128) / 10;
 					this.rotate(angle);
 				}
 			}(i));
-
-			var placedSymbol = new PlacedSymbol(path);
-			layer.insertChild(0, placedSymbol);
 		}
 		layer.position = view.center;
 

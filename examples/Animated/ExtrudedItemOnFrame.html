@@ -28,7 +28,8 @@
 		for (var i = 0; i < lineCount; i++) {
 			var linePath = new Path.Line([0, 0], [0, 0]);
 			linePath.strokeColor = 'red';
-
+      lineGroup.addChild(linePath);
+      
 			linePath.onFrame(function(i) {
 				return function(event) {
 					var l1 = (length1 / lineCount * (i + event.count / 10)) % length1;
@@ -38,7 +39,7 @@
 				}
 			}(i));
 
-			lineGroup.addChild(linePath);
+			
 		}
 
 		var path1 = new Path();

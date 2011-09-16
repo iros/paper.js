@@ -405,23 +405,24 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 						that._canvas);
 			}
 			var now = Date.now() / 1000,
-			 	delta = before ? now - before : 0;
-			// Use Base.merge to convert into a Base object, for #toString()
-			event_obj = Base.merge({
-				delta: delta, // Time elapsed since last redraw in seconds
-				time: time += delta, // Time since first call of frame() in seconds
-				count: count++
-			});
+			 	delta = before ? now - before : 0,
+			  // Use Base.merge to convert into a Base object, for #toString()
+			  eventObj = Base.merge({
+  				delta: delta, // Time elapsed since last redraw in seconds
+  				time: time += delta, // Time since first call of frame() in seconds
+  				count: count++
+  			});
 
 			// execute item level onFrame animations if there are any.
-			if (typeof paper._onFrameStack != "undefined" && 
+			if (paper._onFrameStack && 
 					paper._onFrameStack.length > 0) {
 				for (var i = 0 ; i < paper._onFrameStack.length; i++) {
-					paper._onFrameStack[i]._onFrame.apply(paper._onFrameStack[i], [event_obj]);
+				  var item = paper._onFrameStack[i]
+					item._onFrame.apply(item, [eventObj]);
 				}
 			}
 
-			that._onFrame(event_obj);
+			that._onFrame(eventObj);
 			before = now;
 			// Automatically draw view on each frame.
 			that.draw(true);
@@ -437,8 +438,7 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 
 	addItemOnFrame: function(item) {
 		if (typeof this._onFrameCallback == "undefined") {
-			noop = function() {};
-			this.setOnFrame(noop);
+			this.setOnFrame(function() {});
 		}
 		if (typeof paper._onFrameStack == "undefined") {
 			paper._onFrameStack = [];
@@ -447,7 +447,8 @@ var View = this.View = PaperScopeItem.extend(/** @lends View# */{
 	},
 
 	removeItemOnFrame: function(item) {
-		if (typeof this._onFrameCallback != "undefined") {
+		if (paper._onFrameStack && 
+				paper._onFrameStack.length > 0) {
 			for( var i = 0; i < this._onFrameStack.length; i++) {
 				if (this._onFrameStack[i] == item) {
 					this._onFrameStack.splice(i,1);

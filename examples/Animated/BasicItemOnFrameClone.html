@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Item on Frame</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script type="text/javascript" src="../../dist/paper.js"></script>
+  <script type="text/paperscript" canvas="canvas">
+    
+    var count = 100;
+    var width = view.size.width;
+    var height = view.size.height;
+    var radius = width / (count*2)
+
+    var circle = new Path.Circle(new Point(0, 0), radius);
+    circle.fillColor = 'black';
+    circle.onFrame(function(event) {
+      this.position.x += 5;
+      if (this.position.x >= width) {
+        this.position.x = 0;
+      }
+    });
+    
+    var circles = [];
+    // position circles
+    for(var i = 0; i < count; i++) {
+      var c = circle.clone();
+      c.position = new Point(radius, i * (radius * 2) + radius);
+      circles.push(c);
+    }
+
+  </script>
+</head>
+<body>
+  <canvas id="canvas" resize></canvas>
+</body>
+</html>

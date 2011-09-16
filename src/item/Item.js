@@ -647,6 +647,12 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 		// name related structures.
 		if (this._name)
 			copy.setName(this._name);
+			
+		// If there is an onframe defined, make sure it's queued up as well.
+		if (this._onFrame) {
+		  copy._onFrame = this._onFrame;
+		  paper.view.addItemOnFrame(copy);
+		}
 		return copy;
 	},
 
@@ -967,7 +973,7 @@ var Item = this.Item = Base.extend(/** @lends Item# */{
 			if (this._name)
 				this._removeFromNamed();
 			if (this._onFrame)
-				paper.removeItemOnFrame(this);
+				paper.view.removeItemOnFrame(this);
 
 			Base.splice(this._parent._children, null, this._index, 1);
 			// Notify parent of changed hierarchy
